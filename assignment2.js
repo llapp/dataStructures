@@ -24,10 +24,10 @@ var $ = cheerio.load(fileContent);
 // // print the trimmed street address
 // console.log(streetAddress.trim());
 
-// START HERE: 
-$('table').each(function(i, elem){
+
+var table = $('table').each(function(i, elem){
     if ($(elem).attr("cellpadding") == '5') {
-        $(elem).find('h4').nextUntil('br').siblings().each(function(i, elem2) {
+        $(elem).find('td:first-child').children().remove().end().each(function(i, elem2) {
               console.log($(elem2).text());
           });
     }
