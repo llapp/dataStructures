@@ -7,7 +7,7 @@ var $ = cheerio.load(fileContent);
 
 $('table').each(function(i, elem){
     if ($(elem).attr("cellpadding") == '5') {
-       var location = $(elem).find('td:first-child').children().remove().end().text().split("<br />");
+       var location = $(elem).find('td:first-child').children().remove().end().text().split("\\n");
        
        var address = location[0];
        
