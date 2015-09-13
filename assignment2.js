@@ -25,13 +25,16 @@ var $ = cheerio.load(fileContent);
 // console.log(streetAddress.trim());
 
 
-var table = $('table').each(function(i, elem){
+$('table').each(function(i, elem){
     if ($(elem).attr("cellpadding") == '5') {
-        $(elem).find('td:first-child').children().remove().end().each(function(i, elem2) {
-              console.log($(elem2).text());
-          });
+       var location = $(elem).find('td:first-child').children().remove().end().text().split("<br />");
+       
+       var address = location[0];
+       
+       console.log(address.trim());
+          }
     }
-});
+);
 
 
 //continue traversing the table down to the <td> elements that contain the address data
