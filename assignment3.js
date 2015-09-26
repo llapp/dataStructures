@@ -1,16 +1,16 @@
-var fs  = require("fs");
+var fs  = require("fs"); // npm install fs
 var request = require('request'); // npm install request
 var async = require('async'); // npm install async
 
-// var apiKey = process.env.API_KEY;
-var apiKey = process.env.API_KEY; //LINNEA, ADD YOUR API KEY HERE
+var apiKey = process.env.API_KEY; 
 
-var meetingsData = [];
-// var addresses = fs.readFileSync('/home/ubuntu/workspace/data/addresses.txt').toString();
+var meetingsData = []; // make empty array for data results
+
+// grab array of addresses from txt file
 var addresses = JSON.parse(fs.readFileSync('/home/ubuntu/workspace/data/addressArray.txt')); //AARON
-var cleanedUp = [];
-// console.log(addresses);
 
+var cleanedUp = []; // make empty array for cleaned up addresses
+// clean up & format addresses to use in apiRequest
 for (var i = 0; i < addresses.length; i++) {
     cleanedUp.push(((addresses[i].substring(0, addresses[i].indexOf(','))) + ', New York, NY').split(' ').join('+'));
 }
@@ -18,14 +18,12 @@ for (var i = 0; i < addresses.length; i++) {
 // eachSeries in the async module iterates over an array and operates on each item in the array in series
 async.eachSeries(cleanedUp, function(value, callback) {
     
-    // var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + addresses + '&key=' + apiKey;
     var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + value + '&key=' + apiKey; //AARON
     var thisMeeting = new Object;
     thisMeeting.address = value;
     request(apiRequest, function(err, resp, body) {
         if (err) {throw err;}
-        // if(body.status === "ZERO_RESULTS") {
-        if (JSON.parse(body).status == "ZERO_RESULTS") { //AARON
+        if (JSON.parse(body).status == "ZERO_RESULTS") { 
             console.log("ZERO RESULTS for" + value);
         } else {
         thisMeeting.latLong = JSON.parse(body).results[0].geometry.location;
@@ -34,7 +32,6 @@ async.eachSeries(cleanedUp, function(value, callback) {
     });
     setTimeout(callback, 300);
 }, function() {
-    // fs.writeFile('assignment3_data.txt', meetingsData, function (err) {
     fs.writeFile('assignment3_data.txt', JSON.stringify(meetingsData), function (err) { //AARON
         if (err) 
         return console.log('Error');
