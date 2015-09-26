@@ -13,13 +13,15 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem) {
     
 });
 
-for (var i = 0; i < meetings.length; i++) {
-    addresses.push(((meetings[i].substring(0, meetings[i].indexOf(','))) + ', New York, NY').split(' ').join('+'));
-}
+fs.writeFileSync('/home/ubuntu/workspace/data/addressArray.txt', JSON.stringify(meetings)); //AARON
+
+// for (var i = 0; i < meetings.length; i++) {
+//     addresses.push(((meetings[i].substring(0, meetings[i].indexOf(','))) + ', New York, NY').split(' ').join('+'));
+// }
 
 
-fs.writeFile('addresses.txt', addresses, function (err) {
-  if (err) 
-  return console.log('Error');
-  console.log('File written');
-});
+// fs.writeFile('addresses.txt', addresses, function (err) {
+//   if (err) 
+//   return console.log('Error');
+//   console.log('File written');
+// });
