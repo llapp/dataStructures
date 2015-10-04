@@ -14,10 +14,16 @@ var cleanedUp = []; // make empty array for cleaned up addresses
 for (var i = 0; i < addresses.length; i++) {
     cleanedUp.push(((addresses[i].substring(0, addresses[i].indexOf(','))) + ', New York, NY').split(' ').join('+'));
 }
+// OPTIONAL CLEAN UP METHOD: function
+// function fixAddresses (oldAddress) {
+//     var newAddress = oldAddress.substring(0, oldAddress.indexOf(',')) + ', New York, NY';
+    
+//     return newAddress;
+// }
 
 // eachSeries in the async module iterates over an array and operates on each item in the array in series
 async.eachSeries(cleanedUp, function(value, callback) {
-    
+    // if using function, replace 'value' with 'fixAddresses'
     var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + value + '&key=' + apiKey; //AARON
     var thisMeeting = new Object;
     thisMeeting.address = value;
