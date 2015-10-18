@@ -9,7 +9,7 @@ var addresses = [];
 var locationNames = [];
 var meetingNames = [];
 var details = [];
-// var dayTime = [];
+var weekday = [];
 
 
 var $ = cheerio.load(content);
@@ -24,45 +24,68 @@ $('tbody').find('tr').each(function(i, elem){
 $('tbody').find('tr').each(function(i, elem){
         locationNames.push($(elem).find('h4').html());
     });
+        function fixLocationNames (text) {
+    var t = text; 
+    t = t.replace('&apos ;', "'");
+    return t; 
+}
 
-// Meeting names:
-// Don't want what comes after the hyphen if what comes after is the same(ish)
-// Parse out the length of the string up to the hyphen, then compare that to the capitalized version of what comes after
+
+
+// console.log(fixLocationNames(locationNames));
+
+
+
+// // Meeting names:
+// // Don't want what comes after the hyphen if what comes after is the same(ish)
+// // Parse out the length of the string up to the hyphen, then compare that to the capitalized version of what comes after
 $('tbody').find('tr').each(function(i, elem){
     var meetingNamesRough = [];
         meetingNamesRough.push($(elem).find('b').html());
         for (var i = 0; i < meetingNamesRough.length; i++) {
             meetingNames.push(((meetingNamesRough[i].substring(0, meetingNamesRough[i].indexOf(' -')))));
         }
-//         var newMeetingName;
+        var newMeetingName;
 
-// function fixMeetingNames(meetingNamesRough) {
-//     var second = meetingNamesRough.substr(meetingNamesRough.indexOf('-') + 2);
-//     var first = meetingNamesRough.substr(0, meetingNamesRough.indexOf('-') - 1);
+function fixMeetingNames(meetingNamesRough) {
+    var second = meetingNamesRough.substr(meetingNamesRough.indexOf('-') + 2);
+    var first = meetingNamesRough.substr(0, meetingNamesRough.indexOf('-') - 1);
     
 
-//     if (first == second.toUpperCase()) {
-//         newMeetingName = first;
-//     } else if (second == "") {
-//         newMeetingName = first;
-//     } else {
-//         newMeetingName = second.toUpperCase();
-//     }
-//      return newMeetingName;
-//     }
+    if (first == second.toUpperCase()) {
+        newMeetingName = first;
+    } else if (second == "") {
+        newMeetingName = first;
+    } else {
+        newMeetingName = second.toUpperCase();
+    }
+     return newMeetingName;
+    }
 });
 
-// Details:
-// ISSUE: printing a bunch of html junk
+// // Details:
+// // ISSUE: printing a bunch of html junk
 $('tbody').find('tr').each(function(i, elem){
         details.push($(elem).find('td')[1].text());
     });
+    function fixDetails (text) {
+    var t = text; 
+    t = t.replace('\r', '');
+    t = t.replace('\n', '');
+    t = t.replace('\t', '');
+    t = t.trim();
+    return t; 
+}
+console.log(fixDetails(details));
 
-// Meeting day/time:
+// Meeting day:
+// Function: will reate associative array listing each weekday and all meeting times occuring on each day 
+// Plus list meeting type & special interest
+// function fixMeetingTimes (weekday) {
+//     var newMeetingTime = weekday
+// }
 // $('tbody').find('tr').each(function(i, elem){
-//     if  ($(elem).find('td').eq(1).text() == "from") {
-//         dayTime.push($(elem).split('<br />')[0].trim());
-//     }
+//     weekday.push($(elem).find('td').eq(1).html().split('<br />'));
 //     });
 
 console.log("Saved " + addresses.length + " addresses");
@@ -77,4 +100,4 @@ fs.writeFileSync('/home/ubuntu/workspace/data/meetingNamesArray.txt', JSON.strin
 console.log("Saved " + details.length + " meeting names"); 
 fs.writeFileSync('/home/ubuntu/workspace/data/detailsArray.txt', JSON.stringify(details));
 
-// console.log(dayTime);
+// console.log(weekday);
