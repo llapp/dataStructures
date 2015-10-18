@@ -1,4 +1,19 @@
 // Parse each type of information for all meetings, save it to an array, then write it to a txt file
+// FINAL FORMAT GOAL:
+// {
+// originalAddress: xxx,
+// address: xxx,
+// zip: xxxxx,
+// times: { day: xxx,
+//          type: xxx,
+//          specialInterest: xxx,
+//          startTime: xxx,
+//          }
+// accessibility: xxx,
+// details: xxx,
+// locationName: xxx,
+// meetingName: xxx
+// }
 
 var fs = require('fs');
 var cheerio = require('cheerio'); // npm install cheerio
@@ -79,7 +94,7 @@ $('tbody').find('tr').each(function(i, elem){
 console.log(fixDetails(details));
 
 // Meeting day:
-// Function: will reate associative array listing each weekday and all meeting times occuring on each day 
+// Function: will create associative array listing each weekday and all meeting times occuring on each day 
 // Plus list meeting type & special interest
 // function fixMeetingTimes (weekday) {
 //     var newMeetingTime = weekday
