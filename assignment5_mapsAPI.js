@@ -1,3 +1,10 @@
+// ---------------------------------
+// weekly assignment 6 - Linnea Lapp
+// 10-19-2015
+// ---------------------------------
+
+// Create function to clean up & properly format all addresses for the Google Maps API
+
 var fs  = require("fs"); // npm install fs
 var request = require('request'); // npm install request
 var async = require('async'); // npm install async

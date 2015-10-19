@@ -1,3 +1,8 @@
+// ---------------------------------
+// weekly assignment 5 - Linnea Lapp
+// 10-19-2015
+// ---------------------------------
+
 // Parse each type of information for all meetings, save it to an array, then write it to a txt file
 // FINAL FORMAT GOAL:
 // {
