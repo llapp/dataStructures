@@ -1,3 +1,8 @@
+// ---------------------------------
+// weekly assignment 10b - Linnea Lapp
+// 11-16-2015
+// ---------------------------------
+
 var http = require('http');
 var pg = require('pg');
 
