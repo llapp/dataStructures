@@ -34,6 +34,7 @@ var meetingAccess = [];
 var specialInterest = [];
 var roughMeetingDays = [];
 var meetingDays = [];
+var hoursColumn = [];
 var roughMeetingStartTimes = [];
 var meetingStartTimes = [];
 var meetingTypes = [];
@@ -135,14 +136,18 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
     
     // EACH MEETING INFO ----------------------------------------------------------------------------
     roughMeetingDays.push($(elem).find('td').eq(1).html().split('</b>')[0].trim());
-    // meetingDays = roughMeetingDays
-    // console.log(meetingDays);
+    // meetingDays.push(fixDays(roughMeetingDays[i]));
+    // console.log(roughMeetingDays);
     
-    roughMeetingStartTimes.push($(elem).find('td').eq(1).html().trim());
-    // meetingStartTimes = roughMeetingStartTimes.replace(/>\s*/g,">").replace(/\s*</g,"<");
-    // console.log(roughMeetingStartTimes);
+    hoursColumn.push($(elem).find('td').eq(1).html().trim().replace(/>\s*/g,">").replace(/\s*</g,"<").split("<br><br>"));
+    
+    for (var i = 0; i < hoursColumn.length - 1; i++) {
+        var eachMeetingTime = hoursColumn[i].split("b>");
+        console.log(eachMeetingTime);
+    }
     
 });
+
 // }
 
 // function getAPIData() {
@@ -279,4 +284,12 @@ function fixMeetingNames(wholeName) {
         return secondHalf.substring(compare);
         // this is for ones that match
     }
+}
+
+function fixDays(roughDays) {
+    var start = roughDays.indexOf('>');
+    var end = roughDays.indexOf(' From');
+    var cleanDays = roughDays.substring(start, end);
+    // console.log(cleanDays);
+    return cleanDays;
 }
