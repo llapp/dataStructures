@@ -16,7 +16,7 @@ var url = 'mongodb://localhost:27017/aameetings';
 
 var apiKey = process.env.API_KEY;
 
-var content = fs.readFileSync('/home/ubuntu/workspace/data/aameetinglist02M.txt');
+var content = fs.readFileSync('/home/ubuntu/workspace/data/finalProject1/aa02.txt');
 // var aaPage = "http://www.nyintergroup.org/meetinglist/meetinglist.cfm?zone=02&borough=M";
 
 var meetingInfo = [];
@@ -32,9 +32,12 @@ var details = [];
 var handicapAccess = [];
 var meetingAccess = [];
 var specialInterest = [];
+var roughMeetingDays = [];
 var meetingDays = [];
+var roughMeetingStartTimes = [];
 var meetingStartTimes = [];
 var meetingTypes = [];
+var roughDirections = [];
 var directions = [];
 var dataLoaded = false;
 
@@ -96,22 +99,32 @@ var dataLoaded = false;
 var $ = cheerio.load(content);
 
 $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
-    // meeting names
-    roughMeetingName.push($(elem).find('b').eq(0).text().replace(/\s+/g, '').trim());
-    // console.log(roughMeetingName);
     
-    // cleanMeetingName.push(fixMeetingNames(meetingName[i]));
+    // MEETING NAMES ----------------------------------------------------------------------------
+    // still printing \' instead of just an apostrophe 
+    roughMeetingName.push($(elem).find('b').eq(0).text().replace(/\s+/g, ' ').trim());
     
-    // location names -- need to get rid of "\'"
+    meetingName.push(fixMeetingNames(roughMeetingName[i]));
+    // console.log(meetingName);
+    
+    // LOCATION NAMES ----------------------------------------------------------------------------
+    // need to get rid of "\'" 
     roughMeetingLocation.push($(elem).find('h4').eq(0).text().replace(/\\/g, '').trim());
-    // meetingLocation.push(fixLocationNames(roughMeetingLocation[i]));
-    // console.log(roughMeetingLocation);
+    meetingLocation.push(fixLocationNames(roughMeetingLocation[i]));
+    // console.log(meetingLocation);
     
-    // addresses
+    // ADDRESS INFO ----------------------------------------------------------------------------
     address.push($(elem).find('td').eq(0).html().split('<br>')[2].trim());
     cleanAddress.push(fixAddresses(address[i]));
+    // console.log(cleanAddress);
     
-    // special info -- need to get rid of "\'"
+    roughDirections.push($(elem).find('td').eq(0).html().split('<br>')[3].trim());
+    directions.push(fixDirections(roughDirections[i]));
+    // console.log(directions);
+    
+    
+    // SPECIAL INFO ----------------------------------------------------------------------------
+    // need to get rid of "\'"
     roughDetails.push($(elem).find('.detailsBox').eq(0).text().replace(/\\/g, '').trim());
     details.push(boolean(roughDetails[i]));
     // console.log(details);
@@ -119,6 +132,15 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
     handicapAccess.push($(elem).find('span').eq(0).text().trim());
     meetingAccess.push(boolean(handicapAccess[i]));
     // console.log(meetingAccess);
+    
+    // EACH MEETING INFO ----------------------------------------------------------------------------
+    roughMeetingDays.push($(elem).find('td').eq(1).html().split('</b>')[0].trim());
+    // meetingDays = roughMeetingDays
+    // console.log(meetingDays);
+    
+    roughMeetingStartTimes.push($(elem).find('td').eq(1).html().trim());
+    // meetingStartTimes = roughMeetingStartTimes.replace(/>\s*/g,">").replace(/\s*</g,"<");
+    // console.log(roughMeetingStartTimes);
     
 });
 // }
@@ -194,8 +216,22 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
 //     }
 
 function fixAddresses(oldAddress) {
+    // want to get rid of anything in () before the comma
+    // var start = oldAddress.substring(0, oldAddress.indexOf('('));
     var newAddress = oldAddress.substring(0, oldAddress.indexOf(',')) + ' New York, NY';
     return newAddress; 
+    // console.log(newAddress);
+}
+
+function fixDirections(oldDirections) {
+    // remove NY, zip and ()
+    var newDirections = oldDirections.replace(/100\d\d$/,"").trim();
+    newDirections = newDirections.replace("NY","").trim();
+    newDirections = newDirections.replace(/^\(/,"");
+    newDirections = newDirections.replace(/\)$/,"");
+
+    // console.log(newDirections);
+    return newDirections;
 }
 
 function boolean(value) {
@@ -206,9 +242,41 @@ function boolean(value) {
     }
 }
 
-// function fixLocationNames (text) {
-//     var t = text; 
-//     t = t.replace(/\\/g, "");
-//     // console.log(t);
-//     return t; 
-// }
+function fixLocationNames (text) {
+    var t = text; 
+    t = t.replace(/\\'/g, "'");
+    // console.log(t);
+    return t; 
+}
+
+function fixMeetingNames(wholeName) {
+    // var firstHalf = wholeName.substring(0,wholeName.indexOf('-'));
+    // return firstHalf;
+    var middle = wholeName.indexOf('-');
+    var firstHalf = wholeName.toUpperCase().substring(0, middle).replace(/A.A./g, "AA").trim();
+    var secondHalf = wholeName.toUpperCase().substring(middle + 2).replace(/- |-/g, "").trim();
+    var firstHalfClean = firstHalf.replace(/\s/g, '');
+    var secondHalfClean = secondHalf.replace(/\s/g, '');
+
+    var compare = firstHalfClean.localeCompare(secondHalfClean);
+
+    if (middle < compare && compare >= 4) {
+        // console.log(">= 4" + wholeName.replace(/-/g, ' ').trim());
+        return wholeName.replace(/-/g, ' ').trim();
+    }
+    else if (compare == middle - 3 || compare == 0 || secondHalfClean.length == 0 || firstHalfClean.indexOf("(:I") != -1) {
+        // console.log("First return" + firstHalf.replace(/-/g, ' ').trim());
+        return firstHalf.replace(/-/g, ' ').trim();
+        // this is for ones with (:I) or (:II) after the name
+    }
+    else if (firstHalfClean == 0 || secondHalfClean.indexOf("(:I") != -1) {
+        // console.log("second has #" + secondHalf.replace(/-/g, ' ').trim());
+        return secondHalf.replace(/-/g, ' ').trim();
+        // this is for ones with more then (:II) after the name
+    }
+    else if (compare < 0) {
+        // console.log( "< 0" + firstHalf + ": " + secondHalf.substring(compare));
+        return secondHalf.substring(compare);
+        // this is for ones that match
+    }
+}
