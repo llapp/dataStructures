@@ -32,12 +32,12 @@ var details = []; //done, need to remove backslashes
 var handicapAccess = [];
 var meetingAccess = []; //done
 var specialInterest = [];
-var roughMeetingDays = [];
-var meetingDays = [];
+// var roughMeetingDays = [];
+// var meetingDays = [];
 var day = [];
 var hoursColumn = [];
-var roughMeetingStartTime = [];
-var meetingStartTime = [];
+// var roughMeetingStartTime = [];
+// var meetingStartTime = [];
 var meetingType = [];
 var roughDirections = [];
 var eachMeeting = [];
@@ -132,7 +132,8 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
     
     // EACH MEETING INFO ----------------------------------------------------------------------------
     $(elem).find('td').eq(1).each(function(i, elem) {
-        hoursColumn.push($(elem).contents().text().trim());
+            hoursColumn.push($(elem).contents().text().trim());
+        });
 
 });
 
@@ -191,17 +192,17 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
 // }
 
 
-// functions to clean data _____________________________________________________
+// FUNCTIONS TO CLEAN INFO ----------------------------------------------------
 
-
+// Clean addresses
 function fixAddresses(oldAddress) {
     // want to get rid of anything in () before the comma
     // var start = oldAddress.substring(0, oldAddress.indexOf('('));
     var newAddress = oldAddress.substring(0, oldAddress.indexOf(',')) + ' New York, NY';
     return newAddress; 
-    // console.log(newAddress);
 }
 
+// Clean directions 
 function fixDirections(oldDirections) {
     // remove NY, zip and ()
     var newDirections = oldDirections.replace(/100\d\d$/,"").trim();
@@ -209,10 +210,10 @@ function fixDirections(oldDirections) {
     newDirections = newDirections.replace(/^\(/,"");
     newDirections = newDirections.replace(/\)$/,"");
 
-    // console.log(newDirections);
     return newDirections;
 }
 
+// If field is empty, return empty value
 function boolean(value) {
     if (value == "") {
         return "";
@@ -221,6 +222,7 @@ function boolean(value) {
     }
 }
 
+// Clean meeting location names
 function fixLocationNames (text) {
     var t = text; 
     t = t.replace(/\\'/g, "'");
@@ -228,6 +230,7 @@ function fixLocationNames (text) {
     return t; 
 }
 
+// Clean meeting names
 function fixMeetingNames(wholeName) {
     // var firstHalf = wholeName.substring(0,wholeName.indexOf('-'));
     // return firstHalf;
@@ -246,29 +249,29 @@ function fixMeetingNames(wholeName) {
     else if (compare == middle - 3 || compare == 0 || secondHalfClean.length == 0 || firstHalfClean.indexOf("(:I") != -1) {
         // console.log("First return" + firstHalf.replace(/-/g, ' ').trim());
         return firstHalf.replace(/-/g, ' ').trim();
-        // this is for ones with (:I) or (:II) after the name
+        // targets names with (:I) or (:II) after the name
     }
     else if (firstHalfClean == 0 || secondHalfClean.indexOf("(:I") != -1) {
         // console.log("second has #" + secondHalf.replace(/-/g, ' ').trim());
         return secondHalf.replace(/-/g, ' ').trim();
-        // this is for ones with more then (:II) after the name
+        // targets names with more then (:II) after the name
     }
     else if (compare < 0) {
         // console.log( "< 0" + firstHalf + ": " + secondHalf.substring(compare));
         return secondHalf.substring(compare);
-        // this is for ones that match
+        // targets names that match
     }
 }
+// // Clean days
+// function fixDays(roughDays) {
+//     var start = roughDays.indexOf('>');
+//     var end = roughDays.indexOf(' From');
+//     var cleanDays = roughDays.substring(start, end);
+//     // console.log(cleanDays);
+//     return cleanDays;
+// }
 
-function fixDays(roughDays) {
-    var start = roughDays.indexOf('>');
-    var end = roughDays.indexOf(' From');
-    var cleanDays = roughDays.substring(start, end);
-    // console.log(cleanDays);
-    return cleanDays;
-}
-
-// clean up hours
+// Clean hours
 for (var i in hoursColumn) {
     hoursColumn[i] = hoursColumn[i].replace(/[ \t]+/g, " ");
     hoursColumn[i] = hoursColumn[i].replace(/[\r\n|\n]/g, " ");
@@ -279,27 +282,32 @@ for (var i in hoursColumn) {
     // console.log(hoursColumn);
 }
 
-// breakdown each meeting time into variables
-
+// Breakdown each meeting time into variables
 function fixHours (roughHours) {
     var from = roughHours.indexOf(roughHours.match("From"));
+    var startHour = roughHours.substr(from + 4, 2);
+    var startMinute = roughHours.substr(from + 7, 2);
+    
+    // Find meeting start time
+    startHour = parseInt(startHour);
+    startMinute = parseInt(startMinute);
+
+    // Find meeting Type
     if (roughHours.indexOf('Type') != -1) {
     meetingType = roughHours.substr(roughHours.indexOf(roughHours.match("Type")) + 5, 2);
     } else {
         meetingType = '';
     }
-        
-    var startHour = roughHours.substr(from + 4, 2);
-    var startMinute = roughHours.substr(from + 7, 2);
-
-    startHour = parseInt(startHour);
-    startMinute = parseInt(startMinute);
-    day = roughHours.substr(0, from - 2);
+    
+    // Find meeting Special Interest
     if (roughHours.indexOf('Interest') != -1) {
         specialInterest = roughHours.substr(roughHours.indexOf(roughHours.match("Interest")) + 9);
     } else {
         specialInterest = '';
     }
+    
+    // Find meeting Day
+    day = roughHours.substr(0, from - 2);
     if (day == 'Sunday') {
         day = 1;
     } else if (day == 'Monday') {
@@ -325,11 +333,12 @@ function fixHours (roughHours) {
     };
 }
 
+// Push cleaned meeting time variables into object
 for (var i in hoursColumn) {
     for (var k in hoursColumn[i]) {
         hoursColumn[i][k] = fixHours(hoursColumn[i][k]);
     }
     eachMeeting.push(hoursColumn[i]);
-}   
+} 
 
-// console.log(eachMeeting);
+console.log(eachMeeting);
