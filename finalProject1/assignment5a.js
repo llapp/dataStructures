@@ -19,27 +19,28 @@ var apiKey = process.env.API_KEY;
 var content = fs.readFileSync('/home/ubuntu/workspace/data/finalProject1/aa02.txt');
 // var aaPage = "http://www.nyintergroup.org/meetinglist/meetinglist.cfm?zone=02&borough=M";
 
-var meetingInfo = [];
+var meetingInfo = []; 
 var roughMeetingName = [];
-var meetingName = [];
+var meetingName = []; //done
 var roughMeetingLocation = [];
-var meetingLocation = [];
+var meetingLocation = []; //done, need to remove backslashes
 var address = [];
-var cleanAddress = [];
-var meetingAddress = [];
+var cleanAddress = []; //done
+var directions = []; //done
 var roughDetails = [];
-var details = [];
+var details = []; //done, need to remove backslashes
 var handicapAccess = [];
-var meetingAccess = [];
+var meetingAccess = []; //done
 var specialInterest = [];
 var roughMeetingDays = [];
 var meetingDays = [];
+var day = [];
 var hoursColumn = [];
-var roughMeetingStartTimes = [];
-var meetingStartTimes = [];
-var meetingTypes = [];
+var roughMeetingStartTime = [];
+var meetingStartTime = [];
+var meetingType = [];
 var roughDirections = [];
-var directions = [];
+var eachMeeting = [];
 var dataLoaded = false;
 
 
@@ -102,14 +103,11 @@ var $ = cheerio.load(content);
 $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
     
     // MEETING NAMES ----------------------------------------------------------------------------
-    // still printing \' instead of just an apostrophe 
     roughMeetingName.push($(elem).find('b').eq(0).text().replace(/\s+/g, ' ').trim());
-    
     meetingName.push(fixMeetingNames(roughMeetingName[i]));
     // console.log(meetingName);
     
     // LOCATION NAMES ----------------------------------------------------------------------------
-    // need to get rid of "\'" 
     roughMeetingLocation.push($(elem).find('h4').eq(0).text().replace(/\\/g, '').trim());
     meetingLocation.push(fixLocationNames(roughMeetingLocation[i]));
     // console.log(meetingLocation);
@@ -123,9 +121,7 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
     directions.push(fixDirections(roughDirections[i]));
     // console.log(directions);
     
-    
-    // SPECIAL INFO ----------------------------------------------------------------------------
-    // need to get rid of "\'"
+    // OTHER INFO ----------------------------------------------------------------------------
     roughDetails.push($(elem).find('.detailsBox').eq(0).text().replace(/\\/g, '').trim());
     details.push(boolean(roughDetails[i]));
     // console.log(details);
@@ -135,17 +131,9 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
     // console.log(meetingAccess);
     
     // EACH MEETING INFO ----------------------------------------------------------------------------
-    roughMeetingDays.push($(elem).find('td').eq(1).html().split('</b>')[0].trim());
-    // meetingDays.push(fixDays(roughMeetingDays[i]));
-    // console.log(roughMeetingDays);
-    
-    hoursColumn.push($(elem).find('td').eq(1).html().trim().replace(/>\s*/g,">").replace(/\s*</g,"<").split("<br><br>"));
-    
-    for (var i = 0; i < hoursColumn.length - 1; i++) {
-        var eachMeetingTime = hoursColumn[i].split("b>");
-        console.log(eachMeetingTime);
-    }
-    
+    $(elem).find('td').eq(1).each(function(i, elem) {
+        hoursColumn.push($(elem).contents().text().trim());
+
 });
 
 // }
@@ -205,20 +193,6 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
 
 // functions to clean data _____________________________________________________
 
-// function fixMeetingNames(roughMeetingNames) {
-//     var second = roughMeetingNames.substr(roughtMeetingNames.indexOf('-') + 2);
-//     var first = roughMeetingNames.substr(0, roughMeetingNames.indexOf('-') - 1);
-    
-
-//     if (first == second.toUpperCase()) {
-//         meetingNames = first;
-//     } else if (second == "") {
-//         meetingNames = first;
-//     } else {
-//         meetingNames = second.toUpperCase();
-//     }
-//      return meetingNames;
-//     }
 
 function fixAddresses(oldAddress) {
     // want to get rid of anything in () before the comma
@@ -293,3 +267,69 @@ function fixDays(roughDays) {
     // console.log(cleanDays);
     return cleanDays;
 }
+
+// clean up hours
+for (var i in hoursColumn) {
+    hoursColumn[i] = hoursColumn[i].replace(/[ \t]+/g, " ");
+    hoursColumn[i] = hoursColumn[i].replace(/[\r\n|\n]/g, " ");
+    hoursColumn[i] = hoursColumn[i].split("           ");
+    for (var k in hoursColumn[i]) {
+        hoursColumn[i][k] = hoursColumn[i][k].trim();
+    }
+    // console.log(hoursColumn);
+}
+
+// breakdown each meeting time into variables
+
+function fixHours (roughHours) {
+    var from = roughHours.indexOf(roughHours.match("From"));
+    if (roughHours.indexOf('Type') != -1) {
+    meetingType = roughHours.substr(roughHours.indexOf(roughHours.match("Type")) + 5, 2);
+    } else {
+        meetingType = '';
+    }
+        
+    var startHour = roughHours.substr(from + 4, 2);
+    var startMinute = roughHours.substr(from + 7, 2);
+
+    startHour = parseInt(startHour);
+    startMinute = parseInt(startMinute);
+    day = roughHours.substr(0, from - 2);
+    if (roughHours.indexOf('Interest') != -1) {
+        specialInterest = roughHours.substr(roughHours.indexOf(roughHours.match("Interest")) + 9);
+    } else {
+        specialInterest = '';
+    }
+    if (day == 'Sunday') {
+        day = 1;
+    } else if (day == 'Monday') {
+        day = 2;
+    } else if (day == 'Tuesday') {
+        day = 3;
+    } else if (day == 'Wednesday') {
+        day = 4;
+    } else if (day == 'Thursday') {
+        day = 5;
+    } else if (day == 'Friday') {
+        day = 6;
+    } else if (day == 'Saturday') {
+        day = 7;
+    }
+    
+    return {
+        "meetingDay": day,
+        "meetingStartHour": startHour,
+        "meetingStartMin": startMinute,
+        "meetingType": meetingType,
+        "specialInterest": specialInterest
+    };
+}
+
+for (var i in hoursColumn) {
+    for (var k in hoursColumn[i]) {
+        hoursColumn[i][k] = fixHours(hoursColumn[i][k]);
+    }
+    eachMeeting.push(hoursColumn[i]);
+}   
+
+// console.log(eachMeeting);
