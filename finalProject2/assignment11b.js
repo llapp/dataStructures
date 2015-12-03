@@ -33,7 +33,9 @@ var server = http.createServer(function(req, res) {
         // handle an error from the connection
         if (handleError(err)) return;
 
-        client.query('SELECT COUNT(*) AS count FROM laptopData WHERE dateTime >= DATEADD(day,-7, GETDATE());', function(err, result) {
+        // client.query('SELECT COUNT(*) AS count FROM laptopData WHERE dateTime >= DATEADD(day,-7, GETDATE());', function(err, result) {
+        // client.query('SELECT * FROM laptopData;', function(err, result) {
+        client.query(writeDateQuery(), function(err, result) {
 
             // handle an error from the query
             if (handleError(err)) return;
@@ -41,10 +43,31 @@ var server = http.createServer(function(req, res) {
             // return the client to the connection pool for other requests to reuse
             done();
             res.writeHead(200, {'content-type': 'text/html'});
-            res.write('<h1>There are ' + result.rows[0].count + ' rows in my table.</h1>');
+            res.write(JSON.stringify(result.rows));
             res.end();
         });
     });
 });
 
 server.listen(process.env.PORT);
+
+function writeDateQuery () {
+    process.env.TZ = 'America/New_York';
+    var dateToday = new Date();
+    var dateOneWeekAgo = new Date(dateToday - 60*60*24*1000*7); 
+
+    var year = dateOneWeekAgo.getFullYear();
+    var month = dateOneWeekAgo.getMonth() + 1; 
+    var day = dateOneWeekAgo.getDate();
+    year = year.toString(); 
+    month = month.toString();
+    day = day.toString();
+    if (month.length == 1) {
+        month = '0' + month;
+    }
+        if (day.length == 1) {
+        day = '0' + day;
+    }
+    var toReturn = 'SELECT * FROM laptopData where dateTime > ' + "'" + year + '-' + month + '-' + day + "';"; 
+    return toReturn;
+}
