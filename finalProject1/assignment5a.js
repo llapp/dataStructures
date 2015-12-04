@@ -1,20 +1,11 @@
-// ---------------------------------
+// ----------------------------------------------------
 //
-// weekly assignment 5 - Linnea Lapp
+// Final Project 1 -- parse meeting info & save to txt file
 //
-// ---------------------------------
+// ----------------------------------------------------
 
-var request = require('request');
-var async = require('async');
 var fs = require('fs');
 var cheerio = require('cheerio'); // npm install cheerio
-
-var MongoClient = require('mongodb').MongoClient,
-    assert = require('assert');
-    
-var url = 'mongodb://localhost:27017/aameetings';
-
-var apiKey = process.env.API_KEY; 
 
 var content = fs.readFileSync('/home/ubuntu/workspace/data/finalProject1/allMeetingInfo.txt');
 var latLongArray = JSON.parse(fs.readFileSync('/home/ubuntu/workspace/data/finalProject1/allLatLongs.txt'));
@@ -33,22 +24,9 @@ var roughHoursColumn = [];
 var hoursColumn = [];
 var eachMeeting = []; // done
 
-// var meetingName = []; //done, some undefined
-// var meetingLocation = []; //done, need to remove backslashes
-// var cleanAddress = []; //done, some extra info after street address should be removed
-// var directions = []; //done
-// var details = []; //done, need to remove backslashes
-// var meetingAccess = []; //done
-// var latLong = []; // returning undefined
-// var allInfo = new Object;
-// // var dataLoaded = false;
-
-// var collName = 'manhattanMeetings';
   
 // ------------------------------------- BEGIN PARSING ----------------------------------------------------------------------------------
 var $ = cheerio.load(content);
-
-// getLatLong();
 
 $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
     
@@ -89,11 +67,10 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
             
     });
             hoursColumn.push(cleanHours(roughHoursColumn[i]));
-            // console.log(hoursColumn.length);
-            var test = makeEachMeeting(hoursColumn[i]);
+
             thisObject.eachMeeting = eachMeeting[i];
             thisObject.latLong = latLongArray[i];
-            // console.log(thisObject);
+
         
         meetingInfo.push(thisObject);
         
@@ -186,16 +163,33 @@ function cleanHours(theHours) {
 // Breakdown each meeting time into variables
 function fixHours (roughHours) {
     var from = roughHours.indexOf(roughHours.match("From"));
-    var startHour = roughHours.substr(from + 4, 3);
-    startHour = startHour.replace(/:/g, '');
-    var startMinute = roughHours.substr(from + 7, 3);
-    startMinute = startMinute.replace(/:/g, '').trim();
-    var AMPM = roughHours.substr(from + 10, 3);
-    AMPM = AMPM.replace(/:/g, '').trim();
     
-    // Find meeting start time
-    startHour = parseInt(startHour);
-    startMinute = parseInt(startMinute);
+    var hr = roughHours.substr(from + 4, 3);
+    hr = hr.replace(/:/g, '');
+    hr = parseInt(hr);
+    // console.log(hr);
+    
+    var startHour;
+    
+    var startTime = roughHours.substr(from + 4, 9);
+    startTime = startTime.trim();
+    // console.log(startTime);
+    
+    var m = startTime.substr(startTime.indexOf('M') - 1, 1);
+    // console.log(m);
+    
+    // Convert start hour to military time
+    if (m == 'A' && hr == 12) {
+        startHour = 0;
+    } else if (m == "A" && hr < 12) {
+        startHour = parseInt(hr);
+    } else if (m == "P" && hr == '12') {
+        startHour = 12;
+    } else if (m == "P" && hr < 12) {
+        startHour = hr + 12;
+    }
+    // console.log(startHour);
+
 
     // Find meeting Type
     if (roughHours.indexOf('Type') != -1) {
@@ -212,28 +206,27 @@ function fixHours (roughHours) {
     }
     
     // Find meeting Day
-    day = roughHours.substr(0, from - 2);
-    if (day == 'Sunday') {
-        day = 1;
-    } else if (day == 'Monday') {
-        day = 2;
-    } else if (day == 'Tuesday') {
-        day = 3;
-    } else if (day == 'Wednesday') {
-        day = 4;
-    } else if (day == 'Thursday') {
-        day = 5;
-    } else if (day == 'Friday') {
-        day = 6;
-    } else if (day == 'Saturday') {
-        day = 7;
+    day = roughHours.substr(0, from - 1);
+    if (day == 'Sundays') {
+        day = 'Sundays';
+    } else if (day == 'Mondays') {
+        day = 'Mondays';
+    } else if (day == 'Tuesdays') {
+        day = 'Tuesdays';
+    } else if (day == 'Wednesdays') {
+        day = 'Wednesdays';
+    } else if (day == 'Thursdays') {
+        day = 'Thursdays';
+    } else if (day == 'Fridays') {
+        day = 'Fridays';
+    } else if (day == 'Saturdays') {
+        day = 'Saturdays';
     }
     
     return {
         "meetingDay": day,
         "meetingStartHour": startHour,
-        "meetingStartMin": startMinute,
-        "AMPM": AMPM,
+        "meetingStartTime": startTime,
         "meetingType": meetingType,
         "specialInterest": specialInterest
     };
@@ -244,21 +237,15 @@ function makeEachMeeting(hourColArray) {
     
 for (var i in hourColArray) {
         hourColArray[i] = fixHours(hourColArray[i]);
-    
 }
-    // console.log(eachMeeting);
-    // return eachMeeting.push(hourColArray);
+
     eachMeeting.push(hourColArray);
-    // console.log(eachMeeting[2]);
     return eachMeeting[i];
 } 
 
-// allInfo.meetingTimes = eachMeeting;
-
 // ------------------------------------- DONE CLEANING -------------------------------------------------
 
-// console.log(makeEachMeeting());
-// console.log(meetingInfo);
+// ------------------------------------- WRITE RESULTS TO TXT FILE -------------------------------------------------
 
 fs.writeFile('meetingObjectArray.txt', JSON.stringify(meetingInfo), function (err) { 
         if (err) 
