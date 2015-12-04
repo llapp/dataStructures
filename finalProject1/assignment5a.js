@@ -17,9 +17,9 @@ var url = 'mongodb://localhost:27017/aameetings';
 var apiKey = process.env.API_KEY; 
 
 var content = fs.readFileSync('/home/ubuntu/workspace/data/finalProject1/allMeetingInfo.txt');
-// var aaPage = "http://www.nyintergroup.org/meetinglist/meetinglist.cfm?zone=02&borough=M";
+var latLongArray = JSON.parse(fs.readFileSync('/home/ubuntu/workspace/data/finalProject1/allLatLongs.txt'));
 
-var meetingInfo = []; 
+var meetingInfo = []; // array of all meeting objects
 var roughMeetingName = [];
 var roughMeetingLocation = [];
 var address = [];
@@ -28,117 +28,81 @@ var roughDetails = [];
 var handicapAccess = [];
 var specialInterest = [];
 var day = [];
-var hoursColumn = [];
 var meetingType = [];
-// var roughMeetingDays = [];
-// var meetingDays = [];
-// var roughMeetingStartTime = [];
-// var meetingStartTime = [];
-
-var meetingName = []; //done, some undefined
-var meetingLocation = []; //done, need to remove backslashes
-var cleanAddress = []; //done, some extra info after street address should be removed
-var directions = []; //done
-var details = []; //done, need to remove backslashes
-var meetingAccess = []; //done
+var roughHoursColumn = [];
+var hoursColumn = [];
 var eachMeeting = []; // done
-var latLong = []; // returning undefined
-var allInfo = new Object;
-var dataLoaded = false;
 
+// var meetingName = []; //done, some undefined
+// var meetingLocation = []; //done, need to remove backslashes
+// var cleanAddress = []; //done, some extra info after street address should be removed
+// var directions = []; //done
+// var details = []; //done, need to remove backslashes
+// var meetingAccess = []; //done
+// var latLong = []; // returning undefined
+// var allInfo = new Object;
+// // var dataLoaded = false;
+
+// var collName = 'manhattanMeetings';
   
-// BEGIN PARSING ----------------------------------------------------------------------------------
+// ------------------------------------- BEGIN PARSING ----------------------------------------------------------------------------------
 var $ = cheerio.load(content);
+
+// getLatLong();
 
 $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
     
+    var thisObject = new Object;
+    
     // MEETING NAMES ----------------------------------------------------------------------------
     roughMeetingName.push($(elem).find('b').eq(0).text().replace(/\s+/g, ' ').trim());
-    meetingName.push(fixMeetingNames(roughMeetingName[i]));
-    allInfo.meetingName = meetingName;
-    // console.log(meetingName);
+    thisObject.meetingName = fixMeetingNames(roughMeetingName[i]);
+    // console.log(thisObject.meetingName);
     
     // LOCATION NAMES ----------------------------------------------------------------------------
     roughMeetingLocation.push($(elem).find('h4').eq(0).text().replace(/\\/g, '').trim());
-    meetingLocation.push(fixLocationNames(roughMeetingLocation[i]));
-    allInfo.meetingLocation = meetingLocation;
-    // console.log(meetingLocation);
+    thisObject.meetingLocation = fixLocationNames(roughMeetingLocation[i]);
+    // console.log(thisObject.meetingLocation);
     
     // ADDRESS ----------------------------------------------------------------------------
     address.push($(elem).find('td').eq(0).html().split('<br>')[2].trim());
-    cleanAddress.push(fixAddresses(address[i]));
-    allInfo.meetingAddress1 = cleanAddress;
-    // console.log(cleanAddress);
+    thisObject.cleanAddress = fixAddresses(address[i]);
+    // console.log(thisObject.cleanAddress);
     
     roughDirections.push($(elem).find('td').eq(0).html().split('<br>')[3].trim());
-    directions.push(fixDirections(roughDirections[i]));
-    allInfo.meetingAddress2 = directions;
-    // console.log(directions);
+    thisObject.directions = fixDirections(roughDirections[i]);
+    // console.log(thisObject.directions);
     
     // OTHER INFO ----------------------------------------------------------------------------
     roughDetails.push($(elem).find('.detailsBox').eq(0).text().replace(/\\/g, '').trim());
-    details.push(boolean(roughDetails[i]));
-    allInfo.meetingDetails = details;
-    // console.log(details);
+    thisObject.details = boolean(roughDetails[i]);
+    // console.log(thisObject.details);
     
     handicapAccess.push($(elem).find('span').eq(0).text().trim());
-    meetingAccess.push(boolean(handicapAccess[i]));
-    allInfo.meetingWheelchair = meetingAccess;
-    // console.log(meetingAccess);
+    thisObject.meetingAccess = boolean(handicapAccess[i]);
+    // console.log(thisObject.meetingAccess);
     
     // EACH MEETING INFO ----------------------------------------------------------------------------
+    // create new object/array to hold each meeting time info, then push to big object
     $(elem).find('td').eq(1).each(function(i, elem) {
-            hoursColumn.push($(elem).contents().text().trim());
-        });
+            roughHoursColumn.push($(elem).contents().text().trim());
+            
+    });
+            hoursColumn.push(cleanHours(roughHoursColumn[i]));
+            // console.log(hoursColumn.length);
+            var test = makeEachMeeting(hoursColumn[i]);
+            thisObject.eachMeeting = eachMeeting[i];
+            thisObject.latLong = latLongArray[i];
+            // console.log(thisObject);
+        
+        meetingInfo.push(thisObject);
+        
 
 });
+// ------------------------------------- Done parsing ----------------------------------------------------
 
 
-
-// FUNCTIONS TO CLEAN INFO ----------------------------------------------------
-
-// API get lat & long ----------------------------------------------------------------------------
-
-function getLatLong() {
-    
-    var apiAddress = [];
-    
-    $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem) {
-        apiAddress.push($(elem).find('td').eq(0).html().split('<br>')[2].trim());
-        // console.log(apiAddress[i]);
-    });
-    
-async.eachSeries(apiAddress, function(value, callback) {
-    var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + fixAddresses(value).split(' ').join('+') + '&key=' + apiKey;
-    // allInfo.meetingAddress1 = value;
-
-    request(apiRequest, function(err, resp, body) {
-        if (err) {
-            throw err;
-        }
-        
-        if (JSON.parse(body).status == "ZERO_RESULTS") {
-            console.log("ZERO RESULTS for" + value);
-        } else {
-            latLong = JSON.parse(body).results[0].geometry.location;
-            allInfo.meetingLatLong = latLong;
-            // allInfo.meetingLatLong = JSON.parse(body).results[0].geometry.location;
-            return allInfo.meetingLatLong;
-        }
-
-        // latLong.push(allInfo.meetingLatLong);
-        // console.log(allInfo.meetingLatLong);
-
-    setTimeout(callback, 500);
-        
-    });
-});
-// function() {
-//     //console.log(meetingsData);
-//     // fs.writeFileSync('./aaMeetingsArrayArea2.txt', JSON.stringify(allInfo));
-// });
-}
-// console.log(getLatLong());
+// ------------------------------------- FUNCTIONS TO CLEAN INFO -----------------------------------------
 
 // Clean addresses
 function fixAddresses(oldAddress) {
@@ -205,21 +169,29 @@ function fixMeetingNames(wholeName) {
 }
 
 // Clean hours
-for (var i in hoursColumn) {
-    hoursColumn[i] = hoursColumn[i].replace(/[ \t]+/g, " ");
-    hoursColumn[i] = hoursColumn[i].replace(/[\r\n|\n]/g, " ");
-    hoursColumn[i] = hoursColumn[i].split("           ");
-    for (var k in hoursColumn[i]) {
-        hoursColumn[i][k] = hoursColumn[i][k].trim();
+function cleanHours(theHours) {
+    
+    var theHours1 = theHours.replace(/[ \t]+/g, " ");
+    var theHours2 = theHours1.replace(/[\r\n|\n]/g, " ");
+    var theHours3 = theHours2.split("           ");
+    for (var i in theHours3) {
+        theHours3[i] = theHours3[i].trim();
+    // console.log(theHours3[i]);
     }
+    return theHours3;
     // console.log(hoursColumn);
 }
+
 
 // Breakdown each meeting time into variables
 function fixHours (roughHours) {
     var from = roughHours.indexOf(roughHours.match("From"));
-    var startHour = roughHours.substr(from + 4, 2);
-    var startMinute = roughHours.substr(from + 7, 2);
+    var startHour = roughHours.substr(from + 4, 3);
+    startHour = startHour.replace(/:/g, '');
+    var startMinute = roughHours.substr(from + 7, 3);
+    startMinute = startMinute.replace(/:/g, '').trim();
+    var AMPM = roughHours.substr(from + 10, 3);
+    AMPM = AMPM.replace(/:/g, '').trim();
     
     // Find meeting start time
     startHour = parseInt(startHour);
@@ -227,7 +199,7 @@ function fixHours (roughHours) {
 
     // Find meeting Type
     if (roughHours.indexOf('Type') != -1) {
-    meetingType = roughHours.substr(roughHours.indexOf(roughHours.match("Type")) + 5, 2);
+    meetingType = roughHours.substr(roughHours.indexOf(roughHours.match("Type")) + 5, 2).trim();
     } else {
         meetingType = '';
     }
@@ -261,19 +233,30 @@ function fixHours (roughHours) {
         "meetingDay": day,
         "meetingStartHour": startHour,
         "meetingStartMin": startMinute,
+        "AMPM": AMPM,
         "meetingType": meetingType,
         "specialInterest": specialInterest
     };
 }
 
 // Push cleaned meeting time variables into object
-for (var i in hoursColumn) {
-    for (var k in hoursColumn[i]) {
-        hoursColumn[i][k] = fixHours(hoursColumn[i][k]);
-    }
-    eachMeeting.push(hoursColumn[i]);
+function makeEachMeeting(hourColArray) {
+    
+for (var i in hourColArray) {
+        hourColArray[i] = fixHours(hourColArray[i]);
+    
+}
+    // console.log(eachMeeting);
+    // return eachMeeting.push(hourColArray);
+    eachMeeting.push(hourColArray);
+    // console.log(eachMeeting[2]);
+    return eachMeeting[i];
 } 
 
-allInfo.meetingTimes = eachMeeting;
+// allInfo.meetingTimes = eachMeeting;
 
-console.log(allInfo.meetingTimes);
+// ------------------------------------- DONE CLEANING -------------------------------------------------
+
+// console.log(makeEachMeeting());
+console.log(meetingInfo);
+

@@ -25,15 +25,16 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem) {
     // console.log(apiAddress);
     
 async.eachSeries(apiAddress, function(value, callback) {
-    var mymyAddress = fixAddresses(value).split(' ').join('+');
-    console.log(mymyAddress);
-    var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + mymyAddress + '&key=' + apiKey;
-    var thisMeeting = new Object;
+    var myAddress = fixAddresses(value).split(' ').join('+');
+    console.log(myAddress);
+    var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + myAddress + '&key=' + apiKey;
+    // var thisMeeting = new Object;
     // thisMeeting.address = value;
+    var latLong;
     request(apiRequest, function(err, resp, body) {
         if (err) {throw err;}
-        thisMeeting.latLong = JSON.parse(body).results[0].geometry.location;
-        meetingsData.push(thisMeeting);
+        latLong = JSON.parse(body).results[0].geometry.location;
+        meetingsData.push(latLong);
     });
     setTimeout(callback, 2000);
 }, function() {
