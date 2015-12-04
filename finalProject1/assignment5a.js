@@ -70,8 +70,8 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
             hoursColumn.push(cleanHours(roughHoursColumn[i]));
             // console.log(hoursColumn.length);
             var test = makeEachMeeting(hoursColumn[i]);
-            thisObject.eachMeeting = eachMeeting[i];
             thisObject.latLong = latLongArray[i];
+            thisObject.eachMeeting = eachMeeting[i];
             // console.log(thisObject);
         
         meetingInfo.push(thisObject);
