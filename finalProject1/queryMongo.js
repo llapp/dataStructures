@@ -1,6 +1,7 @@
 // --------------------------------------------------------------------
 //
 // Final Project 1 -- query Mongo to retrive relevant meeting times
+// Weekly assignment 11 submission
 //
 // --------------------------------------------------------------------
 
@@ -9,7 +10,7 @@ var collName = 'manhattanMeetings';
 var currentDate = new Date(); // Pull current date info
 var todayNum = currentDate.getDay(); // Pull out numeric weekday -- same as dayNum variable in meeting objects
 var currentHour = currentDate.getHours(); // Pull out current hour -- in military time
-var endHour = 4; // Query looks for meetings with start times up to 4AM 
+var endHour = 4; // Query for meetings with start times up to 4AM 
 
 var tomorrowNum = getTomorrow(todayNum);
 
