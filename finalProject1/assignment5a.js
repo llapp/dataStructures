@@ -19,6 +19,7 @@ var roughDetails = [];
 var handicapAccess = [];
 var specialInterest = [];
 var day = [];
+var dayNum = [];
 var meetingType = [];
 var roughHoursColumn = [];
 var hoursColumn = [];
@@ -67,10 +68,11 @@ $('table[cellpadding=5]').find('tbody').find('tr').each(function(i, elem){
             
     });
             hoursColumn.push(cleanHours(roughHoursColumn[i]));
-
+            // console.log(hoursColumn.length);
+            var test = makeEachMeeting(hoursColumn[i]);
             thisObject.eachMeeting = eachMeeting[i];
             thisObject.latLong = latLongArray[i];
-
+            // console.log(thisObject);
         
         meetingInfo.push(thisObject);
         
@@ -209,22 +211,31 @@ function fixHours (roughHours) {
     day = roughHours.substr(0, from - 1);
     if (day == 'Sundays') {
         day = 'Sundays';
+        dayNum = 0;
     } else if (day == 'Mondays') {
         day = 'Mondays';
+        dayNum = 1;
     } else if (day == 'Tuesdays') {
         day = 'Tuesdays';
+        dayNum = 2;
     } else if (day == 'Wednesdays') {
         day = 'Wednesdays';
+        dayNum = 3;
     } else if (day == 'Thursdays') {
         day = 'Thursdays';
+        dayNum = 4;
     } else if (day == 'Fridays') {
         day = 'Fridays';
+        dayNum = 5;
     } else if (day == 'Saturdays') {
         day = 'Saturdays';
+        dayNum = 6;
     }
+    // console.log(dayNum);
     
     return {
         "meetingDay": day,
+        "meetingDayNum": dayNum,
         "meetingStartHour": startHour,
         "meetingStartTime": startTime,
         "meetingType": meetingType,
@@ -237,15 +248,19 @@ function makeEachMeeting(hourColArray) {
     
 for (var i in hourColArray) {
         hourColArray[i] = fixHours(hourColArray[i]);
+    
 }
-
+    // console.log(eachMeeting);
+    // return eachMeeting.push(hourColArray);
     eachMeeting.push(hourColArray);
+    // console.log(eachMeeting[2]);
     return eachMeeting[i];
 } 
 
 // ------------------------------------- DONE CLEANING -------------------------------------------------
 
 // ------------------------------------- WRITE RESULTS TO TXT FILE -------------------------------------------------
+
 
 fs.writeFile('meetingObjectArray.txt', JSON.stringify(meetingInfo), function (err) { 
         if (err) 
