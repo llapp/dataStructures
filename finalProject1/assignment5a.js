@@ -258,5 +258,11 @@ for (var i in hourColArray) {
 // ------------------------------------- DONE CLEANING -------------------------------------------------
 
 // console.log(makeEachMeeting());
-console.log(meetingInfo);
+// console.log(meetingInfo);
 
+fs.writeFile('meetingObjectArray.txt', JSON.stringify(meetingInfo), function (err) { 
+        if (err) 
+        return console.log('Error');
+        console.log('Wrote ' + meetingInfo.length + ' entries to file');
+        
+    });
