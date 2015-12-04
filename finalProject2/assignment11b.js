@@ -1,6 +1,9 @@
-// ------------------------------------------------
-// weekly assignment 11 for Final Assignment 2
-// ------------------------------------------------
+// --------------------------------------------------------------------
+//
+// Final Project 2 -- PostgreSQL query/aggregation
+// Weekly assignment 11 submission
+//
+// --------------------------------------------------------------------
 
 var http = require('http');
 var pg = require('pg');
@@ -33,8 +36,6 @@ var server = http.createServer(function(req, res) {
         // handle an error from the connection
         if (handleError(err)) return;
 
-        // client.query('SELECT COUNT(*) AS count FROM laptopData WHERE dateTime >= DATEADD(day,-7, GETDATE());', function(err, result) {
-        // client.query('SELECT * FROM laptopData;', function(err, result) {
         client.query(writeDateQuery(), function(err, result) {
 
             // handle an error from the query
