@@ -122,9 +122,9 @@ function fixLocationNames (text) {
 // Clean meeting names
 function fixMeetingNames(wholeName) {
 
-    var middle = wholeName.indexOf('-');
+    var middle = wholeName.indexOf(' -');
     var firstHalf = wholeName.toUpperCase().substring(0, middle).replace(/A.A./g, "AA").trim();
-    var secondHalf = wholeName.toUpperCase().substring(middle + 2).replace(/- |-/g, "").trim();
+    var secondHalf = wholeName.toUpperCase().substring(middle + 3).replace(/- |-/g, "").trim();
     var firstHalfClean = firstHalf.replace(/\s/g, '');
     var secondHalfClean = secondHalf.replace(/\s/g, '');
 
@@ -140,10 +140,14 @@ function fixMeetingNames(wholeName) {
     else if (firstHalfClean == 0 || secondHalfClean.indexOf("(:I") != -1) {
         return secondHalf.replace(/-/g, ' ').trim();
         // targets names with more then (:II) after the name
+    } else if (compare >=4 && compare < 12) {
+        return firstHalf.replace(/-/g, ' ').trim();
     }
-    else if (compare < 0) {
+    else if (compare < 4) {
         return secondHalf.substring(compare);
         // targets names that match
+    } else {
+        return wholeName.substr(0, middle).replace(/-/g, ' ').trim();
     }
 }
 
