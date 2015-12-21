@@ -9,10 +9,25 @@ function makeContent(cont) {
                     contentHolder = contentHolder + '<p>' + cont.meetingGroups[i].meetingGroup.meetingLocation + '<br>';
                 }
                 contentHolder = contentHolder + cont.meetingGroups[i].meetingGroup.cleanAddress.substr(0, cont.meetingGroups[i].meetingGroup.cleanAddress.indexOf(',')) + '<br>';
-                contentHolder = contentHolder + cont.meetingGroups[i].meetingGroup.directions + '</p>';
-                contentHolder = contentHolder + '<p><b>Upcoming meetings: </b><br>';
+                if (cont.meetingGroups[i].meetingGroup.directions != '') {
+                    contentHolder = contentHolder + '(' + cont.meetingGroups[i].meetingGroup.directions + ')' + '</p>';
+                } else {
+                   contentHolder = contentHolder + '' + '</p>';
+                }
+                if (cont.meetingGroups[i].meetingGroup.meetingAccess != ""){
+                  contentHolder = contentHolder + "<h5>**Wheelchair Accessible" + '</h5>';
+              }
+                contentHolder = contentHolder + '<p><b>Meetings today: </b><br>';
+                var todayCount = 0;
                 for (var j = 0; j < cont.meetingGroups[i].meetings.meetingStartTimes.length; j++) {
                     var mt, si;
+                    var day = cont.meetingGroups[i].meetings.meetingDayNums[j];
+                    var todayMeets = "";
+                    var tomMeets = "";
+                    var tomCount = 0;
+                    var currentDay = new Date();
+                    var todayNumber = currentDay.getDay();
+                    
                     if (cont.meetingGroups[i].meetings.meetingTypes[j] == "BB") {
                         mt = "Big Book ";
                     }
@@ -39,13 +54,79 @@ function makeContent(cont) {
                     }
 
                     if (cont.meetingGroups[i].meetings.specialInterest[j] != '') {
-                        si = cont.meetingGroups[i].meetings.specialInterest[j]
+                        si = ' - ' + cont.meetingGroups[i].meetings.specialInterest[j]
                     }
                     else {
                         si = ''
                     }
-                    contentHolder = contentHolder + cont.meetingGroups[i].meetings.meetingStartTimes[j] + ' ' + mt + si + '<br>';
+                    
+                    if (cont.meetingGroups[i].meetings.meetingStartHours[j] > 4) {
+
+                        todayMeets = todayMeets + cont.meetingGroups[i].meetings.meetingStartTimes[j] + ' ' + mt + si + '<br>';
+                        todayCount++;
+                    }
+                    
+                contentHolder = contentHolder + todayMeets;
                 }
+                contentHolder = contentHolder + '<p><b>Meetings tomorrow (before 4:00 AM): </b><br>';
+                if (cont.meetingGroups[i].meetings.meetingStartTimes.length != todayCount) {
+                for (var j = 0; j < cont.meetingGroups[i].meetings.meetingStartTimes.length; j++) {
+                    var mt, si;
+                    var day = cont.meetingGroups[i].meetings.meetingDayNums[j];
+                    var todayMeets = "";
+                    var tomMeets = "";
+                    var todayCount = 0;
+                    var tomCount = 0;
+                    var currentDay = new Date();
+                    var todayNumber = currentDay.getDay();
+                    
+                    if (cont.meetingGroups[i].meetings.meetingTypes[j] == "BB") {
+                        mt = "Big Book ";
+                    }
+                    else if (cont.meetingGroups[i].meetings.meetingTypes[j] == "B") {
+                        mt = "Beginners ";
+                    }
+                    else if (cont.meetingGroups[i].meetings.meetingTypes[j] == "C") {
+                        mt = "Closed Discussion ";
+                    }
+                    else if (cont.meetingGroups[i].meetings.meetingTypes[j] == "S") {
+                        mt = "Step ";
+                    }
+                    else if (cont.meetingGroups[i].meetings.meetingTypes[j] == "T") {
+                        mt = "Tradition ";
+                    }
+                    else if (cont.meetingGroups[i].meetings.meetingTypes[j] == "O") {
+                        mt = "Open Meeting ";
+                    }
+                    else if (cont.meetingGroups[i].meetings.meetingTypes[j] == "OD") {
+                        mt = "Open Discussion ";
+                    }
+                    else {
+                        mt = "";
+                    }
+
+                    if (cont.meetingGroups[i].meetings.specialInterest[j] != '') {
+                        si = ' - ' + cont.meetingGroups[i].meetings.specialInterest[j]
+                    }
+                    else {
+                        si = ''
+                    }
+
+                    if (cont.meetingGroups[i].meetings.meetingStartHours[j] < 5) {
+
+                        tomMeets = tomMeets + cont.meetingGroups[i].meetings.meetingStartTimes[j] + ' ' + mt + si + '<br>';
+                        tomCount++;
+                    <!--if (tomCount == 0) {-->
+                    <!--    tomMeets = 'No meetings' + '<br>';-->
+                    <!--}-->
+                    } 
+                    <!--contentHolder = contentHolder + cont.meetingGroups[i].meetings.meetingStartTimes[j] + ' ' + mt  + si + '<br>';-->
+                contentHolder = contentHolder + tomMeets;
+                }
+                } else {
+                contentHolder = contentHolder + 'None' + '<br>';
+                }
+                
                 contentHolder = contentHolder + '</p>';
                 contentHolder = contentHolder + '<div class="iw-bottom-gradient"></div>';
             }
